@@ -1,0 +1,51 @@
+{
+  "namespace": "streams",
+  "name": "trafficclass",
+  "type": "record",
+  "fields": [
+    {
+      "name": "datetime",
+      "type": {
+        "type": "long",
+        "format_as_time" : "unix_long",
+        "arg.properties": {
+          "iteration": { "start": 1, "step": 10}
+        }
+      }
+    },
+    {
+      "name": "link",
+      "type": {
+        "name": "link",
+        "type": "enum",
+        "symbols": ["Newtech_1", "Newtech_2"]
+      }
+    },
+    {
+      "name": "direction",
+      "type": {
+        "name": "direction",
+        "type": "enum",
+        "symbols": ["downstream", "upstream"]
+      }
+    },
+    {
+      "name": "classname",
+      "type": {
+        "type": "string",
+        "arg.properties": {
+          "regex": "(CREW|PAX)_(Business|Collaboration|Default|File_Transfer|Scavenger|Streaming|Web_Browing)"
+        }
+      }
+    },
+    {
+      "name": "monitorif",
+      "type": {
+        "type": "string",
+        "arg.properties": {
+          "regex": "tap[1-4]\\.10[1-2]"
+        }
+      }
+    }
+  ]
+}
