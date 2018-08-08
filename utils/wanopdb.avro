@@ -1,0 +1,44 @@
+{
+  "namespace": "streams",
+  "name": "wanoperationaldb",
+  "type": "record",
+  "fields": [
+    {"name": "seq", "type": {
+      "type": "int",
+      "arg.properties": {
+        "iteration": { "start": 1, "step": 1}
+      }
+    }},
+    {"name": "flag", "type": {
+      "type": "string",
+        "arg.properties": {
+          "regex": "(0|1)"
+		}
+    }},
+    {"name": "datetime", "type": {
+      "type": "long",
+      "format_as_time" : "unix_long",
+      "arg.properties": {
+        "iteration": { "start": 1, "step": 10}
+      }
+    }},
+    {"name": "wanLinks", "type": {
+      "type": "string",
+      "arg.properties": {
+        "regex": "\\[Newtech_1, Newtech_2\\]"
+      }
+    }},
+    {"name": "dscpValues", "type": {
+      "type": "string",
+      "arg.properties": {
+        "regex": "\\[[1-2][1-2], [1-2][1-2]\\]"
+      }
+    }},
+    {"name": "potentialmatrix", "type": {
+      "type": "string",
+      "arg.properties": {
+        "regex": "\\[\\[[0-1],[0-1]\\],\\[[0-1],[0-1]\\]\\]"
+      }
+    }}
+  ]
+}
