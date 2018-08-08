@@ -16,17 +16,25 @@
     {
       "name": "link",
       "type": {
-        "name": "link",
-        "type": "enum",
-        "symbols": ["Newtech_1", "Newtech_2"]
+        "type": "string",
+        "arg.properties": {
+          "options": [
+            "Newtech_1",
+            "Newtech_2"
+          ]
+        }
       }
     },
     {
       "name": "direction",
       "type": {
-        "name": "direction",
-        "type": "enum",
-        "symbols": ["downstream", "upstream"]
+        "type": "string",
+        "arg.properties": {
+          "options": [
+            "downstream",
+            "upstream"
+          ]
+        }
       }
     },
     {

@@ -15,7 +15,7 @@
 	},
     {"name": "link", "type": {
       "type": "string",
-      "args.properties":{
+      "arg.properties":{
         "options": [
           "Newtech_1",
           "Newtech_2"
@@ -24,7 +24,7 @@
     }},
     {"name": "nodename", "type": {
       "type": "string",
-      "args.properties":{
+      "arg.properties":{
         "options": [
           "ARP", "CREW_Web_Browsing", "PAX_Web_Browsing", "RIP"
         ]
