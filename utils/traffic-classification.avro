@@ -1,0 +1,72 @@
+{
+  "namespace": "streams",
+  "name": "trafficclassification",
+  "type": "record",
+  "fields": [
+    {
+      "name": "datetime",
+      "type": {
+        "type": "long",
+        "format_as_time" : "unix_long",
+        "arg.properties": {
+          "iteration": { "start": 1, "step": 10}
+        }
+      }
+    },
+    {
+      "name": "link",
+      "type": {
+        "type": "string",
+        "arg.properties": {
+          "options": [
+            "Newtech_1", "Newtech_2"
+          ]
+        }
+      }
+    },
+    {
+      "name": "classname",
+      "type": {
+        "type": "string",
+        "arg.properties": {
+          "options": [
+            "ARP", "CREW_Web_Browsing", "PAX_Web_Browsing", "RIP"
+          ]
+        }
+      }
+    },
+    {
+      "name": "enable",
+      "type": {
+        "type": "string",
+        "arg.properties": {
+          "regex": "(0|1)"
+        }
+      }
+    },
+    {
+      "name": "expression",
+      "type": {
+        "type": "string",
+        "arg.properties": {
+          "regex": "[A-Za-z]{8}"
+        }
+      }
+    },
+    {
+      "name": "nodename",
+      "type": {
+        "type": "string",
+        "arg.properties": {
+          "options": [
+            "ARP", "CREW_Web_Browsing", "PAX_Web_Browsing", "RIP"
+          ]
+        }
+      }
+    },
+    {
+      "name": "matchingorder",
+      "type": "int"
+    }
+  ]
+}
