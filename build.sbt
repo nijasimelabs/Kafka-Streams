@@ -15,3 +15,4 @@ libraryDependencies += "org.slf4j" % "slf4j-log4j12" % "1.7.25"
 libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0"
 libraryDependencies += "com.typesafe.play" %% "play-json" % "2.6.9"
 
+

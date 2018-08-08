@@ -28,3 +28,4 @@ project/plugins/project/
 *.iml
 .idea_modules
 projectFilesBackup
+utils/log/*

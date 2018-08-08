@@ -1,8 +1,13 @@
 import java.util.Properties
 import org.apache.kafka.common.serialization._
 import org.apache.kafka.streams._
-import org.apache.kafka.streams.kstream.{KStreamBuilder, KeyValueMapper}
 import play.api.libs.json._
+import org.apache.kafka.connect.json.JsonDeserializer;
+import org.apache.kafka.connect.json.JsonSerializer;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.apache.kafka.streams.kstream.{KStream, KStreamBuilder, KTable,   ForeachAction}
+
+
 /**
   * Copyright Knoldus Software LLP, 2017. All rights reserved.
   */
@@ -16,24 +21,41 @@ object ChannelGroupProfileStream {
       properties.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass)
       properties
     }
+    
+    val jsonSerializer: Serializer[JsonNode] = new JsonSerializer()
+    val jsonDeserializer: Deserializer[JsonNode] = new JsonDeserializer()
+    val jsonSerde: Serde[JsonNode] = Serdes.serdeFrom(jsonSerializer, jsonDeserializer)
+    val wanOperationalDbTopic: String = "wan_op_db"
+    val trafficShapingTopic: String ="traffic_shaping"
+    val trafficClassTopic: String = "traffic_class"
+    val trafficClassificationTopic: String = "traffic_Classification"
+    val operationalSCPCTopic: String = "operational_scpc"
+    val remoteTopic: String = "remote"
+
     val stringSerde = Serdes.String()
     val integerSerde = Serdes.Integer()
-    val builder = new KStreamBuilder()
-    val originalStream = builder.stream("wanoperationaldb1")
-    val mappedStream =
-      originalStream.map[String, Integer] {
-        new KeyValueMapper[String, String, KeyValue[String, Integer]] {
-          override def apply(key: String, value: String): KeyValue[String, Integer] = {
-		       val json: JsValue = Json.parse(value)
-		        println(json("potentialmatrix") +"  "+json("dscpValues"))
-            val wan_json= Json.parse(json("wanLinks").toString())
-            println(wan_json)
-            new KeyValue(key, new Integer(value.length))
-          }
-        }
+    val builder = new KStreamBuilder() 
+   
+    val trafficShapingStream: KStream[String, JsonNode] = builder.stream(stringSerde, jsonSerde, trafficShapingTopic);
+
+    val trafficClassificationStream: KStream[String, JsonNode] = builder.stream(stringSerde, jsonSerde, trafficClassificationTopic)
+    
+    trafficShapingStream.foreach(new ForeachAction[String, JsonNode]() {
+      override def apply(key: String, value: JsonNode): Unit = {
+        println(key + " 1: " + value.get("nodename"))
       }
-    mappedStream.to(stringSerde, integerSerde, "SinkTopic")
-    val streams = new KafkaStreams(builder, config)
-    streams.start()
+    });
+
+    trafficClassificationStream.foreach(new ForeachAction[String, JsonNode]() {
+      override def apply(key: String, value: JsonNode): Unit = {
+        println(key + " 2: " + value.get("nodename"))
+      }
+    })
+    
+    //val trafficClassificationStream: KStream[String, JsonNode]  = trafficShapingStream.join(trafficClassificationStream -> trafficClassificationStream.path("nodename"));
+    val  streams = new KafkaStreams(builder, config);
+    streams.start();
+
+    
   }
 }
