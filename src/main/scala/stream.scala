@@ -20,7 +20,7 @@ object ChannelGroupProfileStream {
     val wanOperationalDbTopic: String = "wan_op_db"
     val trafficShapingTopic: String ="traffic_shaping"
     val trafficClassTopic: String = "traffic_class"
-    val trafficClassificationTopic: String = "traffic_Classification"
+    val trafficClassificationTopic: String = "traffic_classification"
     val operationalSCPCTopic: String = "operational_scpc"
     val remoteTopic: String = "remote"
 
@@ -51,7 +51,6 @@ object ChannelGroupProfileStream {
    // stream for only those records with matching nodename.
    val joiner: ValueJoiner[JsonNode, JsonNode, JsonNode] = new ValueJoiner[JsonNode, JsonNode, JsonNode]() {
       def apply(traffic_shaping_obj: JsonNode, traffic_classification_obj: JsonNode):JsonNode={
-         
          val jNode:ObjectNode = JsonNodeFactory.instance.objectNode();
          jNode.put("nodename", traffic_shaping_obj.path("nodename").asText()) 
          jNode.put("datetime",traffic_shaping_obj.path("datetime").asText())
@@ -59,7 +58,7 @@ object ChannelGroupProfileStream {
          jNode.put("cir", traffic_shaping_obj.path("cir").asText())
          jNode.put("mir", traffic_shaping_obj.path("mir").asText())
          jNode.put("link", traffic_shaping_obj.path("link").asText())
-         jNode.put("classname", traffic_shaping_obj.path("nodename").asText())
+         jNode.put("classname", traffic_classification_obj.path("nodename").asText())
          return jNode;
       }
     }
@@ -83,10 +82,11 @@ object ChannelGroupProfileStream {
       }
     }        
     
-    val traffic_joined: KStream[String, JsonNode]  = trafficShapingStream.join(trafficClassificationTable,  joiner)
-    val traffic_joined2: KStream[String, JsonNode]  = traffic_joined.join(trafficClassTable,  joiner2)
+   val traffic_joined: KStream[String, JsonNode]  = trafficShapingStream.join(trafficClassificationTable,  joiner)
+   val  traffic_joined_filtered = traffic_joined.filter((key, json) => json.path("nodename").asText().equals(json.path("classname").asText()))
+  val traffic_joined_second: KStream[String, JsonNode]  = traffic_joined_filtered.join(trafficClassTable,  joiner2)
     
-    traffic_joined2.to("out-topic", Produced.`with`(stringSerde, jsonSerde))
+    traffic_joined_second.to("out-topic", Produced.`with`(stringSerde, jsonSerde))
 
     val streams: KafkaStreams = new KafkaStreams(builder.build(), config)
     streams.start();
