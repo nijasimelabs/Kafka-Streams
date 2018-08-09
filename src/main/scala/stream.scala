@@ -47,6 +47,8 @@ object ChannelGroupProfileStream {
    val trafficClassTable: KTable[String, JsonNode] = builder.table(trafficClassTopic, Consumed.`with`(stringSerde, jsonSerde))
 
    // joiner for trafic class and traffic Shaping. join these two values by nodename, since the same key is present on both nodes
+   // FIXME: Even if the key is present in both strems, the streams are not joined based on nodename. so we may have to filter the joined
+   // stream for only those records with matching nodename.
    val joiner: ValueJoiner[JsonNode, JsonNode, JsonNode] = new ValueJoiner[JsonNode, JsonNode, JsonNode]() {
       def apply(traffic_shaping_obj: JsonNode, traffic_classification_obj: JsonNode):JsonNode={
          
