@@ -1,5 +1,5 @@
 #!/bin/bash
-CONFLUENT_BIN="/home/synergia/confluent/bin/"
+CONFLUENT_BIN="/home/ubuntu/confluent/bin/"
 MAX_INTL="maxInterval=5000"
 
 
@@ -12,10 +12,10 @@ start() {
 	#echo $! > log/wan.pid
 	#${CONFLUENT_BIN}ksql-datagen schema=oper.avro format=json topic=operationalscpc key=link ${MAX_INTL} > /dev/null 2> log/op.log &
 	#echo $! > log/op.pid
-	${CONFLUENT_BIN}ksql-datagen schema=traffic-classification.avro format=json topic=traffic_Classification key=link ${MAX_INTL} > /dev/null 2> log/tr-shift.log &
+	${CONFLUENT_BIN}ksql-datagen schema=traffic-classification.avro format=json topic=traffic_Classification key=link ${MAX_INTL} > /dev/null 2> log/tr-class.log &
 	echo $! > log/tr-class.pid
-	${CONFLUENT_BIN}ksql-datagen schema=traffic-shaping.avro format=json topic=traffic_shaping key=link ${MAX_INTL} > /dev/null 2> log/tr-class.log &
-	echo $! > log/tr-shift.pid
+	${CONFLUENT_BIN}ksql-datagen schema=traffic-shaping.avro format=json topic=traffic_shaping key=link ${MAX_INTL} > /dev/null 2> log/tr-shape.log &
+	echo $! > log/tr-shape.pid
 }
 
 stop() {
@@ -23,7 +23,7 @@ stop() {
 	#kill -9 `cat log/wan.pid`
 	#kill -9 `cat log/op.pid`
 	kill -9 `cat log/tr-class.pid`
-	kill -9 `cat log/tr-shift.pid`
+	kill -9 `cat log/tr-shape.pid`
 }
 
 
