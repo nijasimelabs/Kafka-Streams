@@ -23,6 +23,9 @@ object TrafficStreamProcessing {
     val trafficTopic: String = "traffic"
     val operationalSCPCTopic: String = "operational_scpc"
 
+    val opscpcKey = "opscpc"
+    val wandbKey = "wandb"
+
     val stringSerde: Serde[String] = Serdes.String()
     val jsonSerializer: Serializer[JsonNode] = new JsonSerializer()
     val jsonDeserializer: Deserializer[JsonNode] = new JsonDeserializer()
@@ -40,12 +43,36 @@ object TrafficStreamProcessing {
     }
 
     val builder: StreamsBuilder = new StreamsBuilder()
-    val aggregate_values:ObjectNode = JsonNodeFactory.instance.objectNode();
+    val aggregate_values: ObjectNode = JsonNodeFactory.instance.objectNode();
+    val store: ObjectNode = JsonNodeFactory.instance.objectNode();
 
 
     //define stream here
     val trafficStream: KStream[String, JsonNode] = builder.stream(trafficTopic, Consumed.`with`(stringSerde, jsonSerde));
-    val operatioanalStream: KTable[String, JsonNode] = builder.table(operationalSCPCTopic, Consumed.`with`(stringSerde, jsonSerde));
+    val operationalStream: KStream[String, JsonNode] = builder.stream(operationalSCPCTopic,
+                                                                      Consumed.`with`(stringSerde, jsonSerde))
+    val wandbStream: KStream[String, JsonNode] = builder.stream(wanOperationalDbTopic,
+                                                                Consumed.`with`(stringSerde, jsonSerde))
+
+
+
+    operationalStream.foreach(
+      new ForeachAction[String, JsonNode]() {
+        override def apply(key: String, value: JsonNode): Unit = {
+          store.set(opscpcKey, value)
+        }
+      }
+    )
+
+
+    wandbStream.foreach(
+      new ForeachAction[String, JsonNode]() {
+        override def apply(key: String, value: JsonNode): Unit = {
+          store.set(wandbKey, value)
+        }
+      }
+    )
+
 
     // processing the stream for aggregation
     trafficStream.foreach(
@@ -74,18 +101,13 @@ object TrafficStreamProcessing {
             // json node for cir mir aggregate
             link.put("cir", sum_cir)
             link.put("mir", max_mir)
-            aggregate_values.put(link_name, link)
-            println("asvasvf:     "+aggregate_values + "\n\n\n")
-
+            aggregate_values.set(link_name, link)
           }
         }
       });
 
 
-
-    val streams: KafkaStreams = new KafkaStreams(builder.build(), config)
-    streams.start();
-
-
+    val streamApp : KafkaStreams = new KafkaStreams(builder.build(), config)
+    streamApp.start();
   }
 }
