@@ -29,17 +29,20 @@ def datagen():
             {
               "name": "CREW_Web_Browsing",
               "cir": 800,
-              "mir": 200
+              "mir": 200,
+              "expression":"ethernet vlan 103 && ip dscp 21"
             },
             {
               "name": "PAX_File_Transfer",
               "cir": 600,
-              "mir": 300
+              "mir": 300,
+              "expression":"ethernet vlan 103 && ip dscp 11"
             },
             {
               "name": "PAX_Scavenger",
               "cir": 700,
-              "mir": 200
+              "mir": 200,
+              "expression":"ethernet vlan 103 && ip dscp 25"
             }
           ]
         },
@@ -50,16 +53,19 @@ def datagen():
               "name": "CREW_Web_Browsing",
               "cir": 500,
               "mir": 100
+              "expression":"ethernet vlan 103 && ip dscp 11"
             },
             {
               "name": "PAX_Web_Browsing",
               "cir": 400,
-              "mir": 200
+              "mir": 200,
+              "expression":"ethernet vlan 103 && ip dscp 25"
             },
             {
               "name": "CREW_Collaboration",
               "cir": 300,
-              "mir": 300
+              "mir": 300,
+              "expression":"ethernet vlan 103 && ip dscp 12"
             }
           ]
         }
