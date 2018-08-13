@@ -18,11 +18,8 @@ object ChannelGroupProfileStream {
   def main(args: Array[String]): Unit = {
     
     val wanOperationalDbTopic: String = "wan_op_db"
-    val trafficShapingTopic: String ="traffic_shaping"
-    val trafficClassTopic: String = "traffic_class"
-    val trafficClassificationTopic: String = "traffic_classification"
+    val trafficTopic: String = "traffic_info"
     val operationalSCPCTopic: String = "operational_scpc"
-    val remoteTopic: String = "remote"
 
     val stringSerde: Serde[String] = Serdes.String()
     val jsonSerializer: Serializer[JsonNode] = new JsonSerializer()
@@ -42,51 +39,52 @@ object ChannelGroupProfileStream {
 
    val builder: StreamsBuilder = new StreamsBuilder()
    //define stream here 
-   val trafficShapingStream: KStream[String, JsonNode] = builder.stream(trafficShapingTopic, Consumed.`with`(stringSerde, jsonSerde));
-   val trafficClassificationTable: KTable[String, JsonNode] = builder.table(trafficClassificationTopic, Consumed.`with`(stringSerde, jsonSerde))
-   val trafficClassTable: KTable[String, JsonNode] = builder.table(trafficClassTopic, Consumed.`with`(stringSerde, jsonSerde))
+   val trafficStream: KStream[String, JsonNode] = builder.stream(trafficTopic, Consumed.`with`(stringSerde, jsonSerde));
+   val new_stream = trafficStream
+   // val trafficClassificationTable: KTable[String, JsonNode] = builder.table(trafficClassificationTopic, Consumed.`with`(stringSerde, jsonSerde))
+   // val trafficClassTable: KTable[String, JsonNode] = builder.table(trafficClassTopic, Consumed.`with`(stringSerde, jsonSerde))
 
    // joiner for trafic class and traffic Shaping. join these two values by nodename, since the same key is present on both nodes
-   // FIXME: Even if the key is present in both strems, the streams are not joined based on nodename. so we may have to filter the joined
    // stream for only those records with matching nodename.
-   val joiner: ValueJoiner[JsonNode, JsonNode, JsonNode] = new ValueJoiner[JsonNode, JsonNode, JsonNode]() {
-      def apply(traffic_shaping_obj: JsonNode, traffic_classification_obj: JsonNode):JsonNode={
-         val jNode:ObjectNode = JsonNodeFactory.instance.objectNode();
-         jNode.put("nodename", traffic_shaping_obj.path("nodename").asText()) 
-         jNode.put("datetime",traffic_shaping_obj.path("datetime").asText())
-         jNode.put("expression",traffic_classification_obj.path("expression").asText())
-         jNode.put("cir", traffic_shaping_obj.path("cir").asText())
-         jNode.put("mir", traffic_shaping_obj.path("mir").asText())
-         jNode.put("link", traffic_shaping_obj.path("link").asText())
-         jNode.put("classname", traffic_classification_obj.path("nodename").asText())
-         return jNode;
-      }
-    }
+   // val joiner: ValueJoiner[JsonNode, JsonNode, JsonNode] = new ValueJoiner[JsonNode, JsonNode, JsonNode]() {
+   //    def apply(traffic_shaping_obj: JsonNode, traffic_classification_obj: JsonNode):JsonNode={
+   //       val jNode:ObjectNode = JsonNodeFactory.instance.objectNode();
+   //       jNode.put("nodename", traffic_shaping_obj.path("nodename").asText()) 
+   //       jNode.put("datetime",traffic_shaping_obj.path("datetime").asText())
+   //       jNode.put("expression",traffic_classification_obj.path("expression").asText())
+   //       jNode.put("cir", traffic_shaping_obj.path("cir").asText())
+   //       jNode.put("mir", traffic_shaping_obj.path("mir").asText())
+   //       jNode.put("link", traffic_shaping_obj.path("link").asText())
+   //       jNode.put("classname", traffic_classification_obj.path("classname").asText())
+   //       return jNode;
+   //    }
+   //  }
 
 
 
-    // joiner trafficClass with traffic_shaping + traffic Classification
+   //  // joiner trafficClass with traffic_shaping + traffic Classification
 
-    val joiner2: ValueJoiner[JsonNode, JsonNode, JsonNode] = new ValueJoiner[JsonNode, JsonNode, JsonNode]() {
-      def apply(traffic_combined_obj: JsonNode, traffic_class_obj: JsonNode):JsonNode={
+   //  val joiner2: ValueJoiner[JsonNode, JsonNode, JsonNode] = new ValueJoiner[JsonNode, JsonNode, JsonNode]() {
+   //    def apply(trafficCombinedObj: JsonNode, trafficClassObj: JsonNode):JsonNode={
          
-         val jNode:ObjectNode = JsonNodeFactory.instance.objectNode();
-         jNode.put("nodename", traffic_combined_obj.path("nodename").asText()) 
-         jNode.put("expression",traffic_combined_obj.path("expression").asText())
-         jNode.put("cir", traffic_combined_obj.path("cir").asText())
-         jNode.put("datetime",traffic_combined_obj.path("datetime").asText())
-         jNode.put("mir", traffic_combined_obj.path("mir").asText())
-         jNode.put("link", traffic_combined_obj.path("link").asText())
-         jNode.put("classname", traffic_combined_obj.path("nodename").asText())
-         return jNode;
-      }
-    }        
+   //       val jNode:ObjectNode = JsonNodeFactory.instance.objectNode();
+   //       jNode.put("nodename", trafficCombinedObj.path("nodename").asText()) 
+   //       jNode.put("expression",trafficCombinedObj.path("expression").asText())
+   //       jNode.put("cir", trafficCombinedObj.path("cir").asText())
+   //       jNode.put("datetime",trafficCombinedObj.path("datetime").asText())
+   //       jNode.put("mir", trafficCombinedObj.path("mir").asText())
+   //       jNode.put("link", trafficCombinedObj.path("link").asText())
+   //       jNode.put("classname", trafficCombinedObj.path("classname").asText())
+   //       jNode.put("classname1", trafficClassObj.path("classname").asText())
+   //       return jNode;
+   //    }
+   //  }        
     
-   val traffic_joined: KStream[String, JsonNode]  = trafficShapingStream.join(trafficClassificationTable,  joiner)
-   val  traffic_joined_filtered = traffic_joined.filter((key, json) => json.path("nodename").asText().equals(json.path("classname").asText()))
-  val traffic_joined_second: KStream[String, JsonNode]  = traffic_joined_filtered.join(trafficClassTable,  joiner2)
-    
-    traffic_joined_second.to("out-topic", Produced.`with`(stringSerde, jsonSerde))
+   // val trafficJoined: KStream[String, JsonNode]  = trafficShapingStream.join(trafficClassificationTable,  joiner)
+   // val trafficJoinedFiltered = trafficJoined.filter((key, jsonObj) => jsonObj.path("nodename").asText().equals(jsonObj.path("classname").asText()))
+   // val trafficJoinedSecond: KStream[String, JsonNode]  = trafficJoinedFiltered.join(trafficClassTable,  joiner2)
+   // val trafficJoinedSecondFiltered = trafficJoinedSecond.filter((key, jsonObj) => jsonObj.path("nodename").asText().equals(jsonObj.path("classname1").asText()))
+   new_stream.to("out-topic", Produced.`with`(stringSerde, jsonSerde))
 
     val streams: KafkaStreams = new KafkaStreams(builder.build(), config)
     streams.start();

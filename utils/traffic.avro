@@ -1,6 +1,6 @@
 {
   "namespace": "streams",
-  "name": "trafficshaping",
+  "name": "traffic_combined",
   "type": "record",
   "fields": [
     {
@@ -23,7 +23,7 @@
       }
     }},
     {
-      "name": "nodename",
+      "name": "classname",
       "type": {
         "type": "string",
         "arg.properties": {
@@ -31,38 +31,32 @@
         }
       }
     },
-    {"name": "enable", "type": {
-        "type": "string",
-        "arg.properties": {
-          "regex": "(0|1)"
-        }
-    }},
-    {"name": "parentnode", "type": {
-        "type": "string",
-        "arg.properties": {
-          "regex": "(0|1)"
-        }
-    }},
+    
     {"name": "cir", "type": {
       "type": "float"
     }},
     {"name": "mir", "type": {
       "type": "float"
     }},
-    {"name": "channel", "type": {
-      "type": "string",
+    
+    {
+      "name": "expression",
+      "type": {
+        "type": "string",
         "arg.properties": {
-          "options": ["channel1"]
+          "regex": "[A-Za-z]{8}"
         }
-    }},
-    {"name": "ratepriority", "type": {
-      "type": "int"
-    }},
-    {"name": "maxqueuetime", "type": {
-      "type": "int"
-    }},
-    {"name": "shapingunit", "type": {
-      "type": "int"
+      }
+    },
+   
+   {"name": "remotename", "type": {
+      "type": "string",
+      "arg.properties":{
+        "options": [
+          "Bliss_1",
+          "Bliss_2"
+        ]
+      }
     }}
   ]
 }

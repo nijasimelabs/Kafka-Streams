@@ -29,9 +29,7 @@
       "type": {
         "type": "string",
         "arg.properties": {
-          "options": [
-            "ARP", "CREW_Web_Browsing", "PAX_Web_Browsing", "RIP"
-          ]
+          "regex": "(CREW|PAX)_(Business|Collaboration|Default|File_Transfer|Scavenger|Streaming|Web_Browing)"
         }
       }
     },
@@ -58,9 +56,7 @@
       "type": {
         "type": "string",
         "arg.properties": {
-          "options": [
-            "ARP", "CREW_Web_Browsing", "PAX_Web_Browsing", "RIP"
-          ]
+          "regex": "(CREW|PAX)_(Business|Collaboration|Default|File_Transfer|Scavenger|Streaming|Web_Browing)"
         }
       }
     },
