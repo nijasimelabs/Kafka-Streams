@@ -9,11 +9,10 @@ import org.apache.kafka.common.serialization._
 import org.apache.kafka.streams.kstream.{Printed, KStream, KTable, Produced, Serialized, ForeachAction}
 import org.apache.kafka.streams.kstream.ValueJoiner
 import org.apache.kafka.streams._
+import collection.JavaConversions._
 import java.util.function.Consumer;
 
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
+import com.fasterxml.jackson.databind.node.{JsonNodeFactory, ObjectNode, ArrayNode, TextNode};
 
 
 object TrafficStreamProcessing {
@@ -22,6 +21,15 @@ object TrafficStreamProcessing {
     val wanOperationalDbTopic: String = "wan_op_db"
     val trafficTopic: String = "traffic"
     val operationalSCPCTopic: String = "operational_scpc"
+
+    val opscpcKey = "opscpc"
+    val wandbKey = "wandb"
+
+    val SPOKE = "spoke"
+    val REMOTE= "remotename"
+    val CHANNEL_GROUPS= "channel_groups"
+    val GROUP_NAME = "groupname"
+    val GROUP_MEMBERS = "group_members"
 
     val stringSerde: Serde[String] = Serdes.String()
     val jsonSerializer: Serializer[JsonNode] = new JsonSerializer()
@@ -40,12 +48,39 @@ object TrafficStreamProcessing {
     }
 
     val builder: StreamsBuilder = new StreamsBuilder()
-    val aggregate_values:ObjectNode = JsonNodeFactory.instance.objectNode();
+    val aggregate_values: ObjectNode = JsonNodeFactory.instance.objectNode();
+    val store: ObjectNode = JsonNodeFactory.instance.objectNode();
 
 
     //define stream here
     val trafficStream: KStream[String, JsonNode] = builder.stream(trafficTopic, Consumed.`with`(stringSerde, jsonSerde));
-    val operatioanalStream: KTable[String, JsonNode] = builder.table(operationalSCPCTopic, Consumed.`with`(stringSerde, jsonSerde));
+    val operationalStream: KStream[String, JsonNode] = builder.stream(operationalSCPCTopic, Consumed.`with`(stringSerde, jsonSerde))
+    val wandbStream: KStream[String, JsonNode] = builder.stream(wanOperationalDbTopic, Consumed.`with`(stringSerde, jsonSerde))
+
+
+
+    operationalStream.foreach(
+      new ForeachAction[String, JsonNode]() {
+        override def apply(key: String, value: JsonNode): Unit = {
+          store.set(opscpcKey, value)
+          var sum_ip_rate:Double = 0;
+          for (i <- 0 until value.size()){
+              sum_ip_rate = sum_ip_rate+ value.get(0).get("avaiableIPrate").asDouble()
+          }
+          aggregate_values.put("Total_available_iprate", sum_ip_rate);
+        }
+      }
+    );
+
+
+    wandbStream.foreach(
+      new ForeachAction[String, JsonNode]() {
+        override def apply(key: String, value: JsonNode): Unit = {
+          store.set(wandbKey, value)
+        }
+      }
+    );
+
 
     // processing the stream for aggregation
     trafficStream.foreach(
@@ -72,20 +107,36 @@ object TrafficStreamProcessing {
             }
 
             // json node for cir mir aggregate
-            link.put("cir", sum_cir)
-            link.put("mir", max_mir)
-            aggregate_values.put(link_name, link)
-            println("asvasvf:     "+aggregate_values + "\n\n\n")
-
+            link.put("cir", sum_cir * 1000000)
+            link.put("mir", max_mir * 1000000)
+            aggregate_values.set(link_name, link)
           }
+
+          // TODO: filter links with dscp values
+
+          val result: ObjectNode = JsonNodeFactory.instance.objectNode()
+          // FIXME: check if required
+          result.set(SPOKE, value.get(REMOTE))
+          val channelGroups: ArrayNode = JsonNodeFactory.instance.arrayNode();
+
+          // iterate over aggregated_values to get the link names
+          for(link <- aggregate_values.fields) {
+            val profile = JsonNodeFactory.instance.objectNode()
+            val groupname: TextNode = JsonNodeFactory.instance.textNode(link.getKey())
+            profile.set(GROUP_NAME, groupname)
+            val members = JsonNodeFactory.instance.arrayNode()
+
+
+            profile.set(GROUP_MEMBERS, members)
+          }
+
+          result.set(CHANNEL_GROUPS, channelGroups)
+          println(aggregate_values)
         }
       });
 
 
-
-    val streams: KafkaStreams = new KafkaStreams(builder.build(), config)
-    streams.start();
-
-
+    val streamApp : KafkaStreams = new KafkaStreams(builder.build(), config)
+    streamApp.start();
   }
 }
