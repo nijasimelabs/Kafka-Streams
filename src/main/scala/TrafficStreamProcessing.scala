@@ -139,4 +139,8 @@ object TrafficStreamProcessing {
     val streamApp : KafkaStreams = new KafkaStreams(builder.build(), config)
     streamApp.start();
   }
+  def calculateWeight(channel_cir:Double, aggregate_cir:Double, total_ip_rate:Double, channel_iprate:Double):Double={
+   val weight =  (channel_cir/aggregate_cir)*(total_ip_rate/channel_iprate)*100;
+   return weight;
+  }
 }
