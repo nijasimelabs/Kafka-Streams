@@ -23,11 +23,11 @@ def datagen():
   "links": [
     {
       "key": "Newtec_1",
-      "dscp_value": %d
+      "dscp_value": %s
     },
     {
       "key": "Newtec_2",
-      "dscp_value": %d
+      "dscp_value": %s
     }
   ],
   "meta_data": {
@@ -40,10 +40,10 @@ def datagen():
     seq = 1
 
     while True:
-        dscp1 = choice(dscps)
-        dscp2 = choice(dscps)
+        dscp1 = [choice(dscps),choice(dscps),choice(dscps),choice(dscps)]
+        dscp2 = [choice(dscps),choice(dscps),choice(dscps),choice(dscps)]
         datetime = int(time())
-        yield template % (seq, dscp1, dscp2, datetime)
+        yield template % (seq, str(dscp1), str(dscp2), datetime)
         seq += 1
         sleep(interval)
 
