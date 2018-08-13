@@ -9,11 +9,10 @@ import org.apache.kafka.common.serialization._
 import org.apache.kafka.streams.kstream.{Printed, KStream, KTable, Produced, Serialized, ForeachAction}
 import org.apache.kafka.streams.kstream.ValueJoiner
 import org.apache.kafka.streams._
+import collection.JavaConversions._
 import java.util.function.Consumer;
 
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
+import com.fasterxml.jackson.databind.node.{JsonNodeFactory, ObjectNode, ArrayNode, TextNode};
 
 
 object TrafficStreamProcessing {
@@ -25,6 +24,12 @@ object TrafficStreamProcessing {
 
     val opscpcKey = "opscpc"
     val wandbKey = "wandb"
+
+    val SPOKE = "spoke"
+    val REMOTE= "remotename"
+    val CHANNEL_GROUPS= "channel_groups"
+    val GROUP_NAME = "groupname"
+    val GROUP_MEMBERS = "group_members"
 
     val stringSerde: Serde[String] = Serdes.String()
     val jsonSerializer: Serializer[JsonNode] = new JsonSerializer()
@@ -99,10 +104,30 @@ object TrafficStreamProcessing {
             }
 
             // json node for cir mir aggregate
-            link.put("cir", sum_cir)
-            link.put("mir", max_mir)
+            link.put("cir", sum_cir * 1000000)
+            link.put("mir", max_mir * 1000000)
             aggregate_values.set(link_name, link)
           }
+
+          // TODO: filter links with dscp values
+
+          val result: ObjectNode = JsonNodeFactory.instance.objectNode()
+          // FIXME: check if required
+          result.set(SPOKE, value.get(REMOTE))
+          val channelGroups: ArrayNode = JsonNodeFactory.instance.arrayNode();
+
+          // iterate over aggregated_values to get the link names
+          for(link <- aggregate_values.fields) {
+            val profile = JsonNodeFactory.instance.objectNode()
+            val groupname: TextNode = JsonNodeFactory.instance.textNode(link.getKey())
+            profile.set(GROUP_NAME, groupname)
+            val members = JsonNodeFactory.instance.arrayNode()
+
+
+            profile.set(GROUP_MEMBERS, members)
+          }
+
+          result.set(CHANNEL_GROUPS, channelGroups)
         }
       });
 
