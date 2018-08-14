@@ -33,6 +33,7 @@ object TrafficStreamProcessing {
     val CHANNEL_GROUPS= "channel_groups"
     val GROUP_NAME = "groupname"
     val GROUP_MEMBERS = "group_members"
+    val ChannelGroupProfile = "changroup_profile"
 
     val stringSerde: Serde[String] = Serdes.String()
     val jsonSerializer: Serializer[JsonNode] = new JsonSerializer()
@@ -123,7 +124,8 @@ object TrafficStreamProcessing {
           }
 
           // TODO: filter links with dscp values
-
+          val rootNode = JsonNodeFactory.instance.objectNode()
+          val profiles = JsonNodeFactory.instance.arrayNode()
           val result: ObjectNode = JsonNodeFactory.instance.objectNode()
           // FIXME: check if required
           result.set(SPOKE, value.get(REMOTE))
@@ -131,19 +133,18 @@ object TrafficStreamProcessing {
 
           // iterate over aggregated_values to get the link names
           for(link <- aggregate_values.fields) {
-            val profile = JsonNodeFactory.instance.objectNode()
+            val channel = JsonNodeFactory.instance.objectNode()
             val groupname: TextNode = JsonNodeFactory.instance.textNode(link.getKey())
-            profile.set(GROUP_NAME, groupname)
+            channel.set(GROUP_NAME, groupname)
             val members = JsonNodeFactory.instance.arrayNode()
-
-
-            profile.set(GROUP_MEMBERS, members)
+            channel.set(GROUP_MEMBERS, members)
           }
 
           result.set(CHANNEL_GROUPS, channelGroups)
-          val data = new ProducerRecord[String, String](result_stream_topic, result_stream_key, result.toString())
+          profiles.add(result)
+          rootNode.put(ChannelGroupProfile, profiles)
+          val data = new ProducerRecord[String, String](result_stream_topic, result_stream_key, rootNode.toString())
           producer.send(data)
-          println(result)
 
         }
       });
