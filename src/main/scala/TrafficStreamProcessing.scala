@@ -64,9 +64,10 @@ object TrafficStreamProcessing {
 
 
     //define stream here
-    val trafficStream: KStream[String, JsonNode] = builder.stream(trafficTopic, Consumed.`with`(stringSerde, jsonSerde));
     val operationalStream: KStream[String, JsonNode] = builder.stream(operationalSCPCTopic, Consumed.`with`(stringSerde, jsonSerde))
     val wandbStream: KStream[String, JsonNode] = builder.stream(wanOperationalDbTopic, Consumed.`with`(stringSerde, jsonSerde))
+    val trafficStream: KStream[String, JsonNode] = builder.stream(trafficTopic, Consumed.`with`(stringSerde, jsonSerde));
+
 
 
 
@@ -132,12 +133,51 @@ object TrafficStreamProcessing {
           val channelGroups: ArrayNode = JsonNodeFactory.instance.arrayNode();
 
           // iterate over aggregated_values to get the link names
-          for(link <- aggregate_values.fields) {
-            val channel = JsonNodeFactory.instance.objectNode()
-            val groupname: TextNode = JsonNodeFactory.instance.textNode(link.getKey())
-            channel.set(GROUP_NAME, groupname)
-            val members = JsonNodeFactory.instance.arrayNode()
-            channel.set(GROUP_MEMBERS, members)
+          // for(link <- aggregate_values.fields) {
+          //   if (!link.getKey().equals("Total_available_iprate")){
+          //      val channel = JsonNodeFactory.instance.objectNode()
+          //     val groupname: TextNode = JsonNodeFactory.instance.textNode(link.getKey())
+          //     channel.set(GROUP_NAME, groupname)
+          //     val members = JsonNodeFactory.instance.arrayNode()
+          //     channel.set(GROUP_MEMBERS, members)
+          //     println(channel)
+          //   }
+           
+          // }
+
+          //looping again to push the data to final data structure 
+          for(i <- 0 until value.size()){
+
+            val linkName = value.get(i).get("link").asText();
+            val channel = JsonNodeFactory.instance.objectNode();
+            val groupname: TextNode = JsonNodeFactory.instance.textNode(linkName);
+            channel.set(GROUP_NAME, groupname);
+            val cir = List(aggregate_values.get(linkName).get("cir").asDouble(), channelIpRate(store.get(opscpcKey), linkName)).min
+            val mir = List(aggregate_values.get(linkName).get("mir").asDouble(), channelIpRate(store.get(opscpcKey), linkName)).min
+            channel.put("cir", cir);
+            channel.put("mir", mir);
+            val members = JsonNodeFactory.instance.arrayNode()      
+
+            for (j <- 0 until value.get(i).get("trafficclass").size()){
+                
+                val channelObj =  JsonNodeFactory.instance.objectNode();
+                val channelName: TextNode = JsonNodeFactory.instance.textNode(value.get(i).get("trafficclass").get(i).get("name").asText());
+                channelObj.set("chan_name", channelName) 
+
+                val weight = calculateWeight(
+                  value.get(i).get("trafficclass").get(i).get("cir").asDouble(),
+                  aggregate_values.get(linkName).get("cir").asDouble(),
+                  aggregate_values.get("Total_available_iprate").asDouble(),
+                  channelIpRate(store.get(opscpcKey), linkName)
+                 )
+
+                channelObj.put("weight", weight) 
+                channelObj.put("mir", value.get(i).get("trafficclass").get(i).get("mir").asDouble()) 
+                members.add(channelObj);
+             }
+              channel.set("channel_group", members);
+              channelGroups.add(channel)
+
           }
 
           result.set(CHANNEL_GROUPS, channelGroups)
@@ -159,5 +199,16 @@ object TrafficStreamProcessing {
   def calculateWeight(channel_cir:Double, aggregate_cir:Double, total_ip_rate:Double, channel_iprate:Double):Double={
    val weight =  (channel_cir/aggregate_cir)*(total_ip_rate/channel_iprate)*100;
    return weight;
+  }
+
+  def channelIpRate(operationalScpc:JsonNode, linkName:String):Double={
+    var iprate:Double = 0.0;
+    for ( i <- 0 until operationalScpc.size()){
+      if(operationalScpc.get(i).get("linkname").asText().equals(linkName)){
+        iprate = operationalScpc.get(i).get("avaiableIPrate").asDouble();
+      }
+    }
+
+    return iprate;
   }
 }
