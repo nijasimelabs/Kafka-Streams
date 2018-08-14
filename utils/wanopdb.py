@@ -4,7 +4,7 @@ from random import choice
 
 
 p = Producer({'bootstrap.servers': 'localhost:9092'})
-topic="wandb"
+topic="wan_op_db"
 interval = 1
 
 def delivery_report(err, msg):
