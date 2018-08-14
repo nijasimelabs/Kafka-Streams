@@ -104,10 +104,7 @@ object TrafficStreamProcessing {
             val dscpValues = wandbstore.getOrElse(link_name, Array[String]())
             val filteredClasses = trafficClasses.elements.asScala.filter(
               tclass => {
-                dscpValues.exists(
-                  i => {
-                    tclass.get("expression").asText().indexOf("dscp " + i) != -1
-                  })
+                dscpValues.exists(i => tclass.get("expression").asText().endsWith("dscp " + i))
               }
             )
             val updatedTrafficClasses = JsonNodeFactory.instance.arrayNode()
@@ -133,7 +130,6 @@ object TrafficStreamProcessing {
             aggregate_values.set(link_name, link)
           }
 
-          // TODO: filter links with dscp values
           val rootNode = JsonNodeFactory.instance.objectNode()
           val profiles = JsonNodeFactory.instance.arrayNode()
           val result: ObjectNode = JsonNodeFactory.instance.objectNode()
@@ -161,7 +157,7 @@ object TrafficStreamProcessing {
               channelObj.set("chan_name", channelName)
 
               val weight = calculateWeight(
-                tclass.get("cir").asDouble(),
+                tclass.get("cir").asDouble() * 1000000,
                 aggregate_values.get(linkName).get("cir").asDouble(),
                 aggregate_values.get("Total_available_iprate").asDouble(),
                 channelIpRate(store.get(KEY_OPSCPC), linkName)
