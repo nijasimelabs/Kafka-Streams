@@ -1,40 +1,23 @@
+import collection.mutable.Map
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.{JsonNodeFactory, ObjectNode, ArrayNode, TextNode};
 import java.util.Properties
+import java.util.function.Consumer;
+import org.apache.kafka.clients.consumer.ConsumerConfig
+import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord, ProducerConfig}
+import org.apache.kafka.common.serialization._
+import org.apache.kafka.common.serialization._
 import org.apache.kafka.connect.json.JsonDeserializer;
 import org.apache.kafka.connect.json.JsonSerializer;
-import com.fasterxml.jackson.databind.JsonNode;
-import org.apache.kafka.common.serialization._
-import org.apache.kafka.clients.consumer.ConsumerConfig
-import org.apache.kafka.clients.producer.ProducerConfig
-import org.apache.kafka.common.serialization._
-import org.apache.kafka.streams.kstream.{Printed, KStream, KTable, Produced, Serialized, ForeachAction}
-import org.apache.kafka.streams.kstream.ValueJoiner
 import org.apache.kafka.streams._
+import org.apache.kafka.streams.kstream.ValueJoiner
+import org.apache.kafka.streams.kstream.{Printed, KStream, KTable, Produced, Serialized, ForeachAction}
 import scala.collection.JavaConverters._
-import collection.mutable.Map
-import java.util.function.Consumer;
-import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
 
-
-import com.fasterxml.jackson.databind.node.{JsonNodeFactory, ObjectNode, ArrayNode, TextNode};
-
+import Constants._
 
 object TrafficStreamProcessing {
   def main(args: Array[String]): Unit = {
-
-    val wanOperationalDbTopic: String = "wan_op_db"
-    val trafficTopic: String = "traffic"
-    val operationalSCPCTopic: String = "operational_scpc"
-    val result_stream_key = "channel_group_profile"
-    val result_stream_topic = "channel_group_profile_topic"
-    val opscpcKey = "opscpc"
-    val wandbKey = "wandb"
-
-    val SPOKE = "spoke"
-    val REMOTE= "remotename"
-    val CHANNEL_GROUPS= "channel_groups"
-    val GROUP_NAME = "groupname"
-    val GROUP_MEMBERS = "group_members"
-    val ChannelGroupProfile = "changroup_profile"
 
     val stringSerde: Serde[String] = Serdes.String()
     val jsonSerializer: Serializer[JsonNode] = new JsonSerializer()
@@ -44,19 +27,19 @@ object TrafficStreamProcessing {
 
     val config = {
       val properties = new Properties()
-      properties.put(StreamsConfig.APPLICATION_ID_CONFIG, "stream-application")
-      properties.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
+      properties.put(StreamsConfig.APPLICATION_ID_CONFIG, APP_ID)
+      properties.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVER)
       properties.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass)
       properties.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass)
-      properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
+      properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, AUTO_OFFSET)
       properties
     }
 
     val props = new Properties()
-    props.put("bootstrap.servers", "localhost:9092")
-    props.put("client.id", "ScalaProducerExample")
-    props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer")
-    props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer")
+    props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVER)
+    props.put(StreamsConfig.CLIENT_ID_CONFIG, PRODUCER_ID)
+    props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer")
+    props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer")
 
     val producer = new KafkaProducer[String, String](props)
 
@@ -67,15 +50,15 @@ object TrafficStreamProcessing {
 
 
     //define stream here
-    val operationalStream: KStream[String, JsonNode] = builder.stream(operationalSCPCTopic, Consumed.`with`(stringSerde, jsonSerde))
-    val wandbStream: KStream[String, JsonNode] = builder.stream(wanOperationalDbTopic, Consumed.`with`(stringSerde, jsonSerde))
-    val trafficStream: KStream[String, JsonNode] = builder.stream(trafficTopic, Consumed.`with`(stringSerde, jsonSerde));
+    val operationalStream: KStream[String, JsonNode] = builder.stream(TOPIC_OPSCPC, Consumed.`with`(stringSerde, jsonSerde))
+    val wandbStream: KStream[String, JsonNode] = builder.stream(TOPIC_WANOPDB, Consumed.`with`(stringSerde, jsonSerde))
+    val trafficStream: KStream[String, JsonNode] = builder.stream(TOPIC_TRAFFIC, Consumed.`with`(stringSerde, jsonSerde));
 
 
     operationalStream.foreach(
       new ForeachAction[String, JsonNode]() {
         override def apply(key: String, value: JsonNode): Unit = {
-          store.set(opscpcKey, value)
+          store.set(KEY_OPSCPC, value)
           var sum_ip_rate:Double = 0;
           for (i <- 0 until value.size()){
             sum_ip_rate = sum_ip_rate+ value.get(0).get("avaiableIPrate").asDouble()
@@ -155,7 +138,7 @@ object TrafficStreamProcessing {
           val profiles = JsonNodeFactory.instance.arrayNode()
           val result: ObjectNode = JsonNodeFactory.instance.objectNode()
           // FIXME: check if required
-          result.set(SPOKE, value.get(REMOTE))
+          result.set(KEY_SPOKE, value.get(KEY_REMOTE))
           val channelGroups: ArrayNode = JsonNodeFactory.instance.arrayNode();
 
           //looping again to push the data to final data structure
@@ -164,9 +147,9 @@ object TrafficStreamProcessing {
             val linkName = linkNode.get("link").asText();
             val channel = JsonNodeFactory.instance.objectNode();
             val groupname: TextNode = JsonNodeFactory.instance.textNode(linkName);
-            channel.set(GROUP_NAME, groupname);
-            val cir = List(aggregate_values.get(linkName).get("cir").asDouble(), channelIpRate(store.get(opscpcKey), linkName)).min
-            val mir = List(aggregate_values.get(linkName).get("mir").asDouble(), channelIpRate(store.get(opscpcKey), linkName)).min
+            channel.set(KEY_GROUP_NAME, groupname);
+            val cir = List(aggregate_values.get(linkName).get("cir").asDouble(), channelIpRate(store.get(KEY_OPSCPC), linkName)).min
+            val mir = List(aggregate_values.get(linkName).get("mir").asDouble(), channelIpRate(store.get(KEY_OPSCPC), linkName)).min
             channel.put("cir", cir);
             channel.put("mir", mir);
             val members = JsonNodeFactory.instance.arrayNode()
@@ -181,7 +164,7 @@ object TrafficStreamProcessing {
                 tclass.get("cir").asDouble(),
                 aggregate_values.get(linkName).get("cir").asDouble(),
                 aggregate_values.get("Total_available_iprate").asDouble(),
-                channelIpRate(store.get(opscpcKey), linkName)
+                channelIpRate(store.get(KEY_OPSCPC), linkName)
               )
 
               channelObj.put("weight", weight)
@@ -193,10 +176,10 @@ object TrafficStreamProcessing {
 
           }
 
-          result.set(CHANNEL_GROUPS, channelGroups)
+          result.set(KEY_CHANNEL_GROUPS, channelGroups)
           profiles.add(result)
-          rootNode.set(ChannelGroupProfile, profiles)
-          val data = new ProducerRecord[String, String](result_stream_topic, result_stream_key, rootNode.toString())
+          rootNode.set(KEY_CHANNEL_GROUP_PROFILE, profiles)
+          val data = new ProducerRecord[String, String](RESULT_TOPIC, RESULT_TOPIC_KEY, rootNode.toString())
           producer.send(data)
 
         }
