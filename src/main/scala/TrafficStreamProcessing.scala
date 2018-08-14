@@ -59,6 +59,7 @@ object TrafficStreamProcessing {
     props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer")
 
     val producer = new KafkaProducer[String, String](props)
+
     val builder: StreamsBuilder = new StreamsBuilder()
     val aggregate_values: ObjectNode = JsonNodeFactory.instance.objectNode();
     var wandbstore = Map[String, Array[String]]()
@@ -107,16 +108,16 @@ object TrafficStreamProcessing {
       new ForeachAction[String, JsonNode]() {
         override def apply(key: String, value: JsonNode): Unit = {
 
-          for( x <- 0 until value.size()) {
+          for( linkNode <- value.elements.asScala) {
 
             // calculate agrgegate cir, mir for each link
             // cir should be the sum of cir and max of mir
             var max_mir:Double = 0.0;
             var sum_cir:Double = 0.0;
-            var link_name = value.get(x).get("link").asText();
+            var link_name = linkNode.get("link").asText();
             val link:ObjectNode = JsonNodeFactory.instance.objectNode();
 
-            var trafficClasses = value.get(x).get("trafficclass")
+            val trafficClasses = linkNode.get("trafficclass")
             val dscpValues = wandbstore.getOrElse(link_name, Array[String]())
             val filteredClasses = trafficClasses.elements.asScala.filter(
               tclass => {
@@ -132,9 +133,9 @@ object TrafficStreamProcessing {
             }
 
             // update trafficClasses
-            value.get(x).asInstanceOf[ObjectNode].set("trafficclass", updatedTrafficClasses)
+            linkNode.asInstanceOf[ObjectNode].set("trafficclass", updatedTrafficClasses)
 
-            for (tclass <- value.get(x).get("trafficclass").elements.asScala) {
+            for (tclass <- linkNode.get("trafficclass").elements.asScala) {
               val cir = tclass.get("cir").asDouble();
               val mir = tclass.get("mir").asDouble()
               sum_cir = sum_cir + cir
@@ -158,9 +159,9 @@ object TrafficStreamProcessing {
           val channelGroups: ArrayNode = JsonNodeFactory.instance.arrayNode();
 
           //looping again to push the data to final data structure
-          for(i <- 0 until value.size()){
+          for(linkNode <- value.elements.asScala){
 
-            val linkName = value.get(i).get("link").asText();
+            val linkName = linkNode.get("link").asText();
             val channel = JsonNodeFactory.instance.objectNode();
             val groupname: TextNode = JsonNodeFactory.instance.textNode(linkName);
             channel.set(GROUP_NAME, groupname);
@@ -170,21 +171,21 @@ object TrafficStreamProcessing {
             channel.put("mir", mir);
             val members = JsonNodeFactory.instance.arrayNode()
 
-            for (j <- 0 until value.get(i).get("trafficclass").size()){
+            for (tclass <- linkNode.get("trafficclass").elements.asScala){
 
               val channelObj =  JsonNodeFactory.instance.objectNode();
-              val channelName: TextNode = JsonNodeFactory.instance.textNode(value.get(i).get("trafficclass").get(j).get("name").asText());
+              val channelName: TextNode = JsonNodeFactory.instance.textNode(tclass.get("name").asText());
               channelObj.set("chan_name", channelName)
 
               val weight = calculateWeight(
-                value.get(i).get("trafficclass").get(j).get("cir").asDouble(),
+                tclass.get("cir").asDouble(),
                 aggregate_values.get(linkName).get("cir").asDouble(),
                 aggregate_values.get("Total_available_iprate").asDouble(),
                 channelIpRate(store.get(opscpcKey), linkName)
               )
 
               channelObj.put("weight", weight)
-              channelObj.put("mir", value.get(i).get("trafficclass").get(j).get("mir").asDouble())
+              channelObj.put("mir", tclass.get("mir").asDouble())
               members.add(channelObj);
             }
             channel.set("channel_group", members);
