@@ -2,7 +2,7 @@ name := "kafka-streams-scala"
 
 version := "0.0.1-SNAPSHOT"
 
-scalaVersion := "2.11.11"
+scalaVersion := "2.12.6"
 
 scalacOptions := Seq("-Xexperimental", "-unchecked", "-deprecation")
 
