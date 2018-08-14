@@ -28,20 +28,20 @@ def datagen():
           "trafficclass": [
             {
               "name": "CREW_Web_Browsing",
-              "cir": 800,
-              "mir": 200,
+              "cir": 0.5,
+              "mir": 73.0000,
               "expression":"ethernet vlan 103 && ip dscp 21"
             },
             {
               "name": "PAX_File_Transfer",
-              "cir": 600,
-              "mir": 300,
+              "cir": 0.6,
+              "mir": 36.5,
               "expression":"ethernet vlan 103 && ip dscp 11"
             },
             {
               "name": "PAX_Scavenger",
-              "cir": 700,
-              "mir": 200,
+              "cir": 0.5000,
+              "mir": 1.0000,
               "expression":"ethernet vlan 103 && ip dscp 25"
             }
           ]
@@ -51,20 +51,20 @@ def datagen():
           "trafficclass": [
             {
               "name": "CREW_Web_Browsing",
-              "cir": 500,
-              "mir": 100,
+              "cir": 8.4000,
+              "mir": 73.0000,
               "expression":"ethernet vlan 103 && ip dscp 11"
             },
             {
               "name": "PAX_Web_Browsing",
-              "cir": 400,
-              "mir": 200,
+              "cir": 2.1,
+              "mir": 73.0000,
               "expression":"ethernet vlan 103 && ip dscp 25"
             },
             {
               "name": "CREW_Collaboration",
-              "cir": 300,
-              "mir": 300,
+              "cir": 1.0500,
+              "mir": 36.5000,
               "expression":"ethernet vlan 103 && ip dscp 12"
             }
           ]

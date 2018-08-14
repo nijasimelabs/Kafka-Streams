@@ -26,11 +26,11 @@ def datagen():
         [
             {
               "linkname": "Newtec_1",
-              "avaiableIPrate": 120000
+              "avaiableIPrate": 51636000
             },
             {
               "linkname": "Newtec_2",
-              "avaiableIPrate": 440000
+              "avaiableIPrate": 32272500
             }
       ]
      """
