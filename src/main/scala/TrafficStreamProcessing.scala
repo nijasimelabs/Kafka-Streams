@@ -11,6 +11,8 @@ import org.apache.kafka.streams.kstream.ValueJoiner
 import org.apache.kafka.streams._
 import collection.JavaConversions._
 import java.util.function.Consumer;
+import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
+
 
 import com.fasterxml.jackson.databind.node.{JsonNodeFactory, ObjectNode, ArrayNode, TextNode};
 
@@ -21,7 +23,8 @@ object TrafficStreamProcessing {
     val wanOperationalDbTopic: String = "wan_op_db"
     val trafficTopic: String = "traffic"
     val operationalSCPCTopic: String = "operational_scpc"
-
+    val result_stream_key = "channel_group_profile"
+    val result_stream_topic = "channel_group_profile_topic"
     val opscpcKey = "opscpc"
     val wandbKey = "wandb"
 
@@ -47,6 +50,13 @@ object TrafficStreamProcessing {
       properties
     }
 
+     val props = new Properties()
+      props.put("bootstrap.servers", "localhost:9092")
+      props.put("client.id", "ScalaProducerExample")
+      props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer")
+      props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer")
+
+    val producer = new KafkaProducer[String, String](props)
     val builder: StreamsBuilder = new StreamsBuilder()
     val aggregate_values: ObjectNode = JsonNodeFactory.instance.objectNode();
     val store: ObjectNode = JsonNodeFactory.instance.objectNode();
@@ -131,7 +141,10 @@ object TrafficStreamProcessing {
           }
 
           result.set(CHANNEL_GROUPS, channelGroups)
-          println(aggregate_values)
+          val data = new ProducerRecord[String, String](result_stream_topic, result_stream_key, result.toString())
+          producer.send(data)
+          println(result)
+
         }
       });
 
@@ -139,6 +152,9 @@ object TrafficStreamProcessing {
     val streamApp : KafkaStreams = new KafkaStreams(builder.build(), config)
     streamApp.start();
   }
+
+
+
   def calculateWeight(channel_cir:Double, aggregate_cir:Double, total_ip_rate:Double, channel_iprate:Double):Double={
    val weight =  (channel_cir/aggregate_cir)*(total_ip_rate/channel_iprate)*100;
    return weight;

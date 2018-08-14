@@ -53,4 +53,4 @@ def datagen():
 if __name__ == '__main__':
     for data in datagen():
         p.poll(0)
-        p.produce(topic, data.encode('utf-8'), callback=delivery_report)
+        p.produce(topic, data.encode('utf-8'), callback=delivery_report, key="wandb")

@@ -52,7 +52,7 @@ def datagen():
             {
               "name": "CREW_Web_Browsing",
               "cir": 500,
-              "mir": 100
+              "mir": 100,
               "expression":"ethernet vlan 103 && ip dscp 11"
             },
             {
