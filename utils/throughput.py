@@ -23,8 +23,7 @@ def delivery_report(err, msg):
 trafficClass = ['PAX_Web_Browsing', 'CREW_Default', 'PAX_File_Transfer', 'CREW_Web_Browsing', 'PAX_Default']
 direction = ['UPSTREAM', 'DOWNSTREAM', ]
 link = ['LINK_1', 'LINK_2', 'LINK_3']
-
-
+byte = 100
 
 def datagen():
     template = """
@@ -32,16 +31,23 @@ def datagen():
             "timestamp":"%s",
            "trafficClass":"%s",
            "direction":"%s",
-           "link":"%s"
+           "link":"%s",
+           "bytes":"%d"
           }
                 """
 
     while True:
-        yield template%(datetime.now().isoformat(), choice(trafficClass), choice(direction), choice(link))
+        tclass = choice(trafficClass)
+        direc = choice(direction)
+        lnk = choice(link)
+        yield (lnk + '-' + tclass + '-' + direc + '-',
+               template % (datetime.now().isoformat(), choice(trafficClass), choice(direction), choice(link), byte))
+        global byte
+        byte += 100
         sleep(interval)
 
 
 if __name__ == '__main__':
-    for data in datagen():
+    for key, data in datagen():
         p.poll(0)
-        p.produce(topic, data.encode('utf-8'), callback=delivery_report, key=datetime.now().isoformat())
+        p.produce(topic, data.encode('utf-8'), callback=delivery_report, key=key)
