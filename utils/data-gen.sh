@@ -15,6 +15,8 @@ start() {
 	echo $! > log/traffic_info.pid
 	python wanopdb.py  > /dev/null 2> log/wanopdb.log &
 	echo $! > log/wan.pid
+	python throughput.py  > /dev/null 2> log/throughput.log &
+	echo $! > log/throughput.pid
 
 }
 
@@ -23,6 +25,7 @@ stop() {
 	kill -9 `cat log/wan.pid`
 	kill -9 `cat log/op.pid`
 	kill -9 `cat log/traffic_info.pid`
+	kill -9 `cat log/throughput.pid`
 
 
 }
