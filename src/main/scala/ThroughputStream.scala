@@ -8,7 +8,7 @@ import org.apache.kafka.common.serialization._
 import org.apache.kafka.connect.json.JsonDeserializer;
 import org.apache.kafka.connect.json.JsonSerializer;
 import org.apache.kafka.streams._
-import org.apache.kafka.streams.kstream.{KStream, KTable, Produced, Serialized, TimeWindows, Initializer, Aggregator}
+import org.apache.kafka.streams.kstream.{ValueMapper, KStream, KTable, Produced, Serialized, TimeWindows, Initializer, Aggregator}
 import scala.collection.JavaConverters._
 
 import Constants._
@@ -68,10 +68,29 @@ object ThroughputStream {
 
           aggValue.asInstanceOf[ObjectNode].set("min", JsonNodeFactory.instance.numberNode(currentMin))
           aggValue.asInstanceOf[ObjectNode].set("max", JsonNodeFactory.instance.numberNode(currentMax))
+
+          // set classname, linkname and direction
+          aggValue.asInstanceOf[ObjectNode].set("trafficClass", newValue.get("trafficClass"))
+          aggValue.asInstanceOf[ObjectNode].set("link", newValue.get("link"))
+          aggValue.asInstanceOf[ObjectNode].set("direction", newValue.get("direction"))
           return aggValue;
         }
       }
-    );
+    ).mapValues(
+      new ValueMapper[JsonNode, JsonNode]() {
+        def apply(oldVal: JsonNode): JsonNode = {
+          val minBytes = oldVal.get("min").asDouble
+          val maxBytes = oldVal.get("Max").asDouble
+          val throughputpbs = (maxBytes - minBytes) * 8 / 10
+
+          oldVal.asInstanceOf[ObjectNode].without(List("min", "max").asJava).asInstanceOf[ObjectNode].set(
+            "throughput_bps",
+            JsonNodeFactory.instance.numberNode(throughputpbs)
+          )
+          return oldVal
+        }
+      }
+    )
 
     val streamApp : KafkaStreams = new KafkaStreams(builder.build(), config)
     streamApp.start();
