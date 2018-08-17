@@ -8,9 +8,8 @@ import org.apache.kafka.common.serialization._
 import org.apache.kafka.connect.json.JsonDeserializer;
 import org.apache.kafka.connect.json.JsonSerializer;
 import org.apache.kafka.streams._
-import org.apache.kafka.streams.kstream.{KeyValueMapper, KStream, KTable, Produced, Serialized}
+import org.apache.kafka.streams.kstream.{KStream, KTable, Produced, Serialized, TimeWindows, Initializer, Aggregator}
 import scala.collection.JavaConverters._
-import org.apache.kafka.streams.kstream.TimeWindows;
 
 import Constants._
 
@@ -44,6 +43,34 @@ object ThroughputStream {
       Consumed.`with`(stringSerde, jsonSerde)
     ).groupByKey().windowedBy(
       TimeWindows.of(windowSizeMs)
+    ).aggregate(
+      new Initializer[JsonNode]() { /* initializer */
+        override def apply(): JsonNode = {
+          val initVal: ObjectNode = JsonNodeFactory.instance.objectNode();
+          initVal.set("min", JsonNodeFactory.instance.numberNode(-1));
+          initVal.set("max", JsonNodeFactory.instance.numberNode(-1));
+          return initVal;
+        }
+      },
+      new Aggregator[String, JsonNode, JsonNode]() { /* aggregator */
+        def apply(aggKey: String, newValue: JsonNode, aggValue: JsonNode): JsonNode = {
+          val throughput = newValue.get("bytes").asDouble
+          var currentMin = aggValue.get("min").asDouble()
+          var currentMax = aggValue.get("max").asDouble()
+
+          if (currentMin == -1 || throughput < currentMin) {
+            currentMin = throughput
+          }
+
+          if (currentMax == -1 || throughput < currentMax) {
+            currentMax = throughput
+          }
+
+          aggValue.asInstanceOf[ObjectNode].set("min", JsonNodeFactory.instance.numberNode(currentMin))
+          aggValue.asInstanceOf[ObjectNode].set("max", JsonNodeFactory.instance.numberNode(currentMax))
+          return aggValue;
+        }
+      }
     );
 
     val streamApp : KafkaStreams = new KafkaStreams(builder.build(), config)
