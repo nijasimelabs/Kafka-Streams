@@ -10,6 +10,7 @@ import org.apache.kafka.connect.json.JsonSerializer;
 import org.apache.kafka.streams._
 import org.apache.kafka.streams.kstream.{KeyValueMapper, KStream, KTable, Produced, Serialized}
 import scala.collection.JavaConverters._
+import org.apache.kafka.streams.kstream.TimeWindows;
 
 import Constants._
 
@@ -35,13 +36,15 @@ object ThroughputStream {
     val builder: StreamsBuilder = new StreamsBuilder()
     val store: ObjectNode = JsonNodeFactory.instance.objectNode();
 
+    val windowSizeMs = 10 * 1000 // 10 sec
 
     //define stream here
-    val throughputStream: KStream[String, JsonNode] = builder.stream(TOPIC_THROUGHPUT, Consumed.`with`(stringSerde, jsonSerde));
-
-    // window here
-    // throughputStream.
-
+    val throughputStream = builder.stream(
+      TOPIC_THROUGHPUT,
+      Consumed.`with`(stringSerde, jsonSerde)
+    ).groupByKey().windowedBy(
+      TimeWindows.of(windowSizeMs)
+    );
 
     val streamApp : KafkaStreams = new KafkaStreams(builder.build(), config)
     streamApp.start();
