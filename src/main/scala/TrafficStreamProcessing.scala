@@ -37,7 +37,7 @@ object TrafficStreamProcessing {
 
     val props = new Properties()
     props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVER)
-    props.put(StreamsConfig.CLIENT_ID_CONFIG, PRODUCER_ID)
+    props.put(StreamsConfig.CLIENT_ID_CONFIG, PROFILE_PRODUCER_ID)
     props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer")
     props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer")
 
@@ -175,7 +175,7 @@ object TrafficStreamProcessing {
           result.set(KEY_CHANNEL_GROUPS, channelGroups)
           profiles.add(result)
           rootNode.set(KEY_CHANNEL_GROUP_PROFILE, profiles)
-          val data = new ProducerRecord[String, String](RESULT_TOPIC, RESULT_TOPIC_KEY, rootNode.toString())
+          val data = new ProducerRecord[String, String](PROFILE_RESULT_TOPIC, PROFILE_RESULT_TOPIC_KEY, rootNode.toString())
           producer.send(data)
 
         }

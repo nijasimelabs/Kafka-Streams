@@ -3,6 +3,7 @@ import com.fasterxml.jackson.databind.node.{JsonNodeFactory, ObjectNode, ArrayNo
 import java.util.Properties
 import java.util.function.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig
+import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord, ProducerConfig}
 import org.apache.kafka.common.serialization.{Serde, Serdes, Serializer, Deserializer, StringDeserializer, StringSerializer};
 import org.apache.kafka.connect.json.{JsonDeserializer, JsonSerializer};
 import org.apache.kafka.streams._
@@ -22,7 +23,7 @@ object ThroughputStream {
     val jsonDeserializer: Deserializer[JsonNode] = new JsonDeserializer()
     val jsonSerde: Serde[JsonNode] = Serdes.serdeFrom(jsonSerializer, jsonDeserializer)
 
-    val config = {
+    val streamConfig = {
       val properties = new Properties()
       properties.put(StreamsConfig.APPLICATION_ID_CONFIG, THROUGHPUT_APP_ID)
       properties.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVER)
@@ -31,6 +32,18 @@ object ThroughputStream {
       properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, AUTO_OFFSET)
       properties
     }
+
+    val prodConfig = {
+      val props = new Properties()
+      props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVER)
+      props.put(StreamsConfig.CLIENT_ID_CONFIG, THROUGHPUT_PRODUCER_ID)
+      props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer")
+      props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer")
+      props
+    }
+
+    val producer = new KafkaProducer[String, String](prodConfig)
+
 
     val builder: StreamsBuilder = new StreamsBuilder()
     val store: ObjectNode = JsonNodeFactory.instance.objectNode();
@@ -49,7 +62,6 @@ object ThroughputStream {
           val initVal: ObjectNode = JsonNodeFactory.instance.objectNode();
           initVal.set("min", JsonNodeFactory.instance.numberNode(-1));
           initVal.set("max", JsonNodeFactory.instance.numberNode(-1));
-          println("initialized")
           return initVal;
         }
       },
@@ -80,21 +92,26 @@ object ThroughputStream {
       Materialized.as[String, JsonNode, WindowStore[Bytes, Array[Byte]]]("troughput-store").withValueSerde(jsonSerde).withKeySerde(stringSerde)
     ).mapValues(
       new ValueMapper[JsonNode, JsonNode]() {
-        def apply(oldVal: JsonNode): JsonNode = {
-          val minBytes = oldVal.get("min").asDouble
-          val maxBytes = oldVal.get("max").asDouble
+        def apply(finalVal: JsonNode): JsonNode = {
+          val minBytes = finalVal.get("min").asDouble
+          val maxBytes = finalVal.get("max").asDouble
           val throughputpbs = (maxBytes - minBytes) * 8 / 10
 
-          oldVal.asInstanceOf[ObjectNode].without(List("min", "max").asJava).asInstanceOf[ObjectNode].set(
+          finalVal.asInstanceOf[ObjectNode].without(List("min", "max").asJava).asInstanceOf[ObjectNode].set(
             "throughput_bps",
             JsonNodeFactory.instance.numberNode(throughputpbs)
           )
-          return oldVal
+
+          // send results to result topic
+          val key = finalVal.get("link").asText() + "-" + finalVal.get("trafficClass").asText() + "-" + finalVal.get("direction").asText()
+          val result = new ProducerRecord[String, String](THROUGHPUT_RESULT_TOPIC, key, finalVal.toString())
+          producer.send(result)
+          return finalVal
         }
       }
     )
 
-    val streamApp : KafkaStreams = new KafkaStreams(builder.build(), config)
+    val streamApp : KafkaStreams = new KafkaStreams(builder.build(), streamConfig)
     streamApp.start();
   }
 
