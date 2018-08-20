@@ -3,12 +3,13 @@ import com.fasterxml.jackson.databind.node.{JsonNodeFactory, ObjectNode, ArrayNo
 import java.util.Properties
 import java.util.function.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig
-import org.apache.kafka.common.serialization._
-import org.apache.kafka.common.serialization._
-import org.apache.kafka.connect.json.JsonDeserializer;
-import org.apache.kafka.connect.json.JsonSerializer;
+import org.apache.kafka.common.serialization.{Serde, Serdes, Serializer, Deserializer, StringDeserializer, StringSerializer};
+import org.apache.kafka.connect.json.{JsonDeserializer, JsonSerializer};
 import org.apache.kafka.streams._
-import org.apache.kafka.streams.kstream.{ValueMapper, KStream, KTable, Produced, Serialized, TimeWindows, Initializer, Aggregator}
+import org.apache.kafka.streams.kstream.{ValueMapper, KStream, KTable,
+  Produced, Serialized, TimeWindows, Initializer, Aggregator, Windowed, Materialized}
+import org.apache.kafka.streams.state.WindowStore
+import org.apache.kafka.common.utils.Bytes
 import scala.collection.JavaConverters._
 
 import Constants._
@@ -20,7 +21,6 @@ object ThroughputStream {
     val jsonSerializer: Serializer[JsonNode] = new JsonSerializer()
     val jsonDeserializer: Deserializer[JsonNode] = new JsonDeserializer()
     val jsonSerde: Serde[JsonNode] = Serdes.serdeFrom(jsonSerializer, jsonDeserializer)
-
 
     val config = {
       val properties = new Properties()
@@ -49,6 +49,7 @@ object ThroughputStream {
           val initVal: ObjectNode = JsonNodeFactory.instance.objectNode();
           initVal.set("min", JsonNodeFactory.instance.numberNode(-1));
           initVal.set("max", JsonNodeFactory.instance.numberNode(-1));
+          println("initialized")
           return initVal;
         }
       },
@@ -62,7 +63,7 @@ object ThroughputStream {
             currentMin = throughput
           }
 
-          if (currentMax == -1 || throughput < currentMax) {
+          if (currentMax == -1 || throughput > currentMax) {
             currentMax = throughput
           }
 
@@ -75,12 +76,13 @@ object ThroughputStream {
           aggValue.asInstanceOf[ObjectNode].set("direction", newValue.get("direction"))
           return aggValue;
         }
-      }
+      },
+      Materialized.as[String, JsonNode, WindowStore[Bytes, Array[Byte]]]("troughput-store").withValueSerde(jsonSerde).withKeySerde(stringSerde)
     ).mapValues(
       new ValueMapper[JsonNode, JsonNode]() {
         def apply(oldVal: JsonNode): JsonNode = {
           val minBytes = oldVal.get("min").asDouble
-          val maxBytes = oldVal.get("Max").asDouble
+          val maxBytes = oldVal.get("max").asDouble
           val throughputpbs = (maxBytes - minBytes) * 8 / 10
 
           oldVal.asInstanceOf[ObjectNode].without(List("min", "max").asJava).asInstanceOf[ObjectNode].set(
