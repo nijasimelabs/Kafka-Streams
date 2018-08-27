@@ -1,3 +1,5 @@
+package com.globaleagle.netbot
+
 import collection.mutable.Map
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.{JsonNodeFactory, ObjectNode, ArrayNode, TextNode};
@@ -16,7 +18,7 @@ import scala.collection.JavaConverters._
 
 import Constants._
 
-object TrafficStreamProcessing {
+object ChannelGroup {
   def main(args: Array[String]): Unit = {
 
     val stringSerde: Serde[String] = Serdes.String()

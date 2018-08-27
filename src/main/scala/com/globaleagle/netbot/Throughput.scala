@@ -1,3 +1,5 @@
+package com.globaleagle.netbot
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.{JsonNodeFactory, ObjectNode, ArrayNode, TextNode};
 import java.util.Properties
@@ -15,9 +17,10 @@ import scala.collection.JavaConverters._
 
 import Constants._
 
-object ThroughputStream {
+object Throughput {
 
   def main(args: Array[String]): Unit = {
+
     val stringSerde: Serde[String] = Serdes.String()
     val jsonSerializer: Serializer[JsonNode] = new JsonSerializer()
     val jsonDeserializer: Deserializer[JsonNode] = new JsonDeserializer()

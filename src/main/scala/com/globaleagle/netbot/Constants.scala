@@ -1,3 +1,5 @@
+package com.globaleagle.netbot
+
 object Constants {
   val PROFILE_APP_ID = "stream-application-profile"
   val THROUGHPUT_APP_ID = "stream-application-throughput"
