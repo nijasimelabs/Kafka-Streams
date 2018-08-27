@@ -6,6 +6,8 @@ scalaVersion := "2.12.6"
 
 scalacOptions := Seq("-Xexperimental", "-unchecked", "-deprecation")
 
+enablePlugins(JavaAppPackaging)
+
 // Kafka
 libraryDependencies += "org.apache.kafka" % "kafka-streams" % "0.11.0.0"
 // JSON
