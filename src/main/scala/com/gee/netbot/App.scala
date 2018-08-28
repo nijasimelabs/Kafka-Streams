@@ -1,5 +1,6 @@
 package com.gee.netbot
 
+import com.typesafe.scalalogging.Logger
 import java.util.Properties
 import java.io.FileInputStream
 import java.io.IOException
@@ -22,6 +23,10 @@ abstract class App {
    */
   def getAppName(): String
 
+  /*
+   * Logger instance
+   */
+  protected val logger = Logger(this.getClass.getName)
 
   /*
    * Application level configurations

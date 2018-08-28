@@ -1,0 +1,40 @@
+<configuration>
+  <appender name="THROUGHPUT" class="ch.qos.logback.core.FileAppender">
+    <file>throughput.log</file>
+    <encoder>
+      <pattern>
+        %date %level [%thread] %logger{10} [%file:%line] %msg%n
+      </pattern>
+    </encoder>
+  </appender>
+
+  <appender name="CHANNELGROUP" class="ch.qos.logback.core.FileAppender">
+  <file>channelgroup.log</file>
+  <encoder>
+    <pattern>
+      %date %level [%thread] %logger{10} [%file:%line] %msg%n
+    </pattern>
+  </encoder>
+  </appender>
+
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <logger name="com.gee.netbot.operations.Throughput$">
+    <appender-ref ref="THROUGHPUT" />
+  </logger>
+
+  <logger name="com.gee.netbot.operations.ChannelGroup$">
+    <appender-ref ref="CHANNELGROUP" />
+  </logger>
+
+
+  <root level="debug">
+    <appender-ref ref="STDOUT" />
+    <appender-ref ref="CHANNELGROUP" />
+    <appender-ref ref="THROUGHPUT" />
+  </root>
+</configuration>

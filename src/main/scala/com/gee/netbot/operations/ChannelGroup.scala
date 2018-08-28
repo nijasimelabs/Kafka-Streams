@@ -28,7 +28,6 @@ object ChannelGroup extends App {
     val jsonDeserializer: Deserializer[JsonNode] = new JsonDeserializer()
     val jsonSerde: Serde[JsonNode] = Serdes.serdeFrom(jsonSerializer, jsonDeserializer)
 
-
     val streamConfig = getAppProperties() match {
       case Some(props) => props;
       case None => {
