@@ -51,9 +51,9 @@ object ChannelGroup extends App {
 
 
     //define stream here
-    val operationalStream: KStream[String, JsonNode] = builder.stream(TOPIC_OPSCPC, Consumed.`with`(stringSerde, jsonSerde))
-    val wandbStream: KStream[String, JsonNode] = builder.stream(TOPIC_WANOPDB, Consumed.`with`(stringSerde, jsonSerde))
-    val trafficStream: KStream[String, JsonNode] = builder.stream(TOPIC_TRAFFIC, Consumed.`with`(stringSerde, jsonSerde));
+    val operationalStream: KStream[String, JsonNode] = builder.stream(getConfig(TOPIC_OPSCPC), Consumed.`with`(stringSerde, jsonSerde))
+    val wandbStream: KStream[String, JsonNode] = builder.stream(getConfig(TOPIC_WANOPDB), Consumed.`with`(stringSerde, jsonSerde))
+    val trafficStream: KStream[String, JsonNode] = builder.stream(getConfig(TOPIC_TRAFFIC), Consumed.`with`(stringSerde, jsonSerde));
 
 
     operationalStream.foreach(
@@ -176,7 +176,7 @@ object ChannelGroup extends App {
           result.set(KEY_CHANNEL_GROUPS, channelGroups)
           profiles.add(result)
           rootNode.set(KEY_CHANNEL_GROUP_PROFILE, profiles)
-          val data = new ProducerRecord[String, String](PROFILE_RESULT_TOPIC, PROFILE_RESULT_TOPIC_KEY, rootNode.toString())
+          val data = new ProducerRecord[String, String](getConfig(PROFILE_RESULT_TOPIC), PROFILE_RESULT_TOPIC_KEY, rootNode.toString())
           producer.send(data)
 
         }

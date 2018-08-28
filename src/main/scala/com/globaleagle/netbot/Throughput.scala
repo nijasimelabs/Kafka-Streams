@@ -50,7 +50,7 @@ object Throughput extends App {
 
     //define stream here
     val throughputStream = builder.stream(
-      TOPIC_THROUGHPUT,
+      getConfig(TOPIC_THROUGHPUT),
       Consumed.`with`(stringSerde, jsonSerde)
     ).groupByKey().windowedBy(
       TimeWindows.of(windowSizeMs)
@@ -102,7 +102,7 @@ object Throughput extends App {
 
           // send results to result topic
           val key = finalVal.get("link").asText() + "-" + finalVal.get("trafficClass").asText() + "-" + finalVal.get("direction").asText()
-          val result = new ProducerRecord[String, String](THROUGHPUT_RESULT_TOPIC, key, finalVal.toString())
+          val result = new ProducerRecord[String, String](getConfig(THROUGHPUT_RESULT_TOPIC), key, finalVal.toString())
           producer.send(result)
           return finalVal
         }
