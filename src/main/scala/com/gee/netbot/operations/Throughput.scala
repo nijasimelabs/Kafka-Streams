@@ -45,7 +45,6 @@ object Throughput extends App {
     val producer = new KafkaProducer[String, String](prodConfig)
 
     val builder: StreamsBuilder = new StreamsBuilder()
-    val store: ObjectNode = JsonNodeFactory.instance.objectNode();
 
     val windowSizeMs = 10 * 1000 // 10 sec
 

@@ -9,6 +9,7 @@ object Constants {
 
   val PROFILE_APP_ID = "channel-group-processor"
   val THROUGHPUT_APP_ID = "throughput-processor"
+  val ALARMS_APP_ID = "alarm-processor"
 
   val PROFILE_PRODUCER_ID = "channel-group-producer"
   val THROUGHPUT_PRODUCER_ID = "throughput-producer"
@@ -16,9 +17,13 @@ object Constants {
   val TOPIC_WANOPDB = "topics.input.wanopdb"
   val TOPIC_TRAFFIC = "topics.input.traffic"
   val TOPIC_OPSCPC = "topics.input.opscpc"
-  val TOPIC_THROUGHPUT = "throughput"
+  val TOPIC_THROUGHPUT = "topics.input.throughput"
+  val TOPIC_ALARMS = "topics.input.alarms"
+
   val PROFILE_RESULT_TOPIC = "topic.output.profile"
   val THROUGHPUT_RESULT_TOPIC = "topic.output.throughput"
+  val ALARMS_SEVERE = "topics.output.severealarms"
+  val ALARMS_NONSEVERE = "topics.output.nonseverealarms"
 
   val PROFILE_RESULT_TOPIC_KEY = "channel_group_profile"
 
