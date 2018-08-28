@@ -17,9 +17,6 @@ libraryDependencies += "org.slf4j" % "slf4j-log4j12" % "1.7.25"
 libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0"
 libraryDependencies += "com.typesafe.play" %% "play-json" % "2.6.9"
 
-// config
-libraryDependencies += "com.typesafe" % "config" % "1.3.2"
-
 val kafka_streams_scala_version = "0.2.1"
 
 libraryDependencies ++= Seq("com.lightbend" %%

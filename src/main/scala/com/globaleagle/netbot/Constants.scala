@@ -1,6 +1,11 @@
 package com.globaleagle.netbot
 
 object Constants {
+  val CONFIG_PATH = "config.path"
+  val APP_CONFIG_FILE = "app.properties"
+  val PROD_CONFIG_FILE = "producer.properties"
+  val CONS_CONFIG_FILE = "consumer.properties"
+
   val PROFILE_APP_ID = "stream-application-profile"
   val THROUGHPUT_APP_ID = "stream-application-throughput"
   val BOOTSTRAP_SERVER = "localhost:9092"
