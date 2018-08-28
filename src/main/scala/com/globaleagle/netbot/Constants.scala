@@ -6,8 +6,9 @@ object Constants {
   val PROD_CONFIG_FILE = "producer.properties"
   val CONS_CONFIG_FILE = "consumer.properties"
 
-  val PROFILE_APP_ID = "stream-application-profile"
-  val THROUGHPUT_APP_ID = "stream-application-throughput"
+  val PROFILE_APP_ID = "channel-group-processor"
+  val THROUGHPUT_APP_ID = "throughput-processor"
+
   val BOOTSTRAP_SERVER = "localhost:9092"
   val AUTO_OFFSET = "latest"
 

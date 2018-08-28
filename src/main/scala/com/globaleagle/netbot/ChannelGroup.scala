@@ -18,7 +18,15 @@ import scala.collection.JavaConverters._
 
 import Constants._
 
-object ChannelGroup {
+object ChannelGroup extends App {
+
+  def getAppName(): String = {
+    return PROFILE_APP_ID
+  }
+
+  /**
+   * Main method
+   */
   def main(args: Array[String]): Unit = {
 
     val stringSerde: Serde[String] = Serdes.String()
@@ -27,21 +35,19 @@ object ChannelGroup {
     val jsonSerde: Serde[JsonNode] = Serdes.serdeFrom(jsonSerializer, jsonDeserializer)
 
 
-    val config = {
-      val properties = new Properties()
-      properties.put(StreamsConfig.APPLICATION_ID_CONFIG, PROFILE_APP_ID)
-      properties.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVER)
-      properties.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass)
-      properties.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass)
-      properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, AUTO_OFFSET)
-      properties
+    val config = getAppProperties() match {
+      case Some(props) => props;
+      case None => {
+        throw new Exception("Could not read application properties")
+      }
     }
 
-    val props = new Properties()
-    props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVER)
-    props.put(StreamsConfig.CLIENT_ID_CONFIG, PROFILE_PRODUCER_ID)
-    props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer")
-    props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer")
+    val props = getProducerProperties() match {
+      case Some(props) => props;
+      case None => {
+        throw new Exception("Could not read producer properties")
+      }
+    }
 
     val producer = new KafkaProducer[String, String](props)
 
@@ -205,4 +211,5 @@ object ChannelGroup {
 
     return iprate;
   }
+
 }
