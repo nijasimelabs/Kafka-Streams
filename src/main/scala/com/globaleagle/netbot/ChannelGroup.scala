@@ -35,21 +35,21 @@ object ChannelGroup extends App {
     val jsonSerde: Serde[JsonNode] = Serdes.serdeFrom(jsonSerializer, jsonDeserializer)
 
 
-    val config = getAppProperties() match {
+    val streamConfig = getAppProperties() match {
       case Some(props) => props;
       case None => {
         throw new Exception("Could not read application properties")
       }
     }
 
-    val props = getProducerProperties() match {
+    val prodConfig = getProducerProperties() match {
       case Some(props) => props;
       case None => {
         throw new Exception("Could not read producer properties")
       }
     }
 
-    val producer = new KafkaProducer[String, String](props)
+    val producer = new KafkaProducer[String, String](prodConfig)
 
     val builder: StreamsBuilder = new StreamsBuilder()
     val aggregate_values: ObjectNode = JsonNodeFactory.instance.objectNode();
@@ -190,7 +190,7 @@ object ChannelGroup extends App {
       });
 
 
-    val streamApp : KafkaStreams = new KafkaStreams(builder.build(), config)
+    val streamApp : KafkaStreams = new KafkaStreams(builder.build(), streamConfig)
     streamApp.start();
   }
 

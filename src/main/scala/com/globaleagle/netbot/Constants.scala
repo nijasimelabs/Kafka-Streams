@@ -12,8 +12,8 @@ object Constants {
   val BOOTSTRAP_SERVER = "localhost:9092"
   val AUTO_OFFSET = "latest"
 
-  val PROFILE_PRODUCER_ID = "streams-app-producer"
-  val THROUGHPUT_PRODUCER_ID = "streams-app-producer"
+  val PROFILE_PRODUCER_ID = "channel-group-producer"
+  val THROUGHPUT_PRODUCER_ID = "throughput-producer"
 
   val TOPIC_WANOPDB = "wan_op_db"
   val TOPIC_TRAFFIC = "traffic"
