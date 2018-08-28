@@ -1,18 +1,15 @@
 package com.globaleagle.netbot
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.{JsonNodeFactory, ObjectNode, ArrayNode, TextNode};
-import java.util.Properties
-import java.util.function.Consumer;
-import org.apache.kafka.clients.consumer.ConsumerConfig
-import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord, ProducerConfig}
-import org.apache.kafka.common.serialization.{Serde, Serdes, Serializer, Deserializer, StringDeserializer, StringSerializer};
-import org.apache.kafka.connect.json.{JsonDeserializer, JsonSerializer};
-import org.apache.kafka.streams._
-import org.apache.kafka.streams.kstream.{ValueMapper, KStream, KTable,
-  Produced, Serialized, TimeWindows, Initializer, Aggregator, Windowed, Materialized}
-import org.apache.kafka.streams.state.WindowStore
+import com.fasterxml.jackson.databind.node.{JsonNodeFactory, ObjectNode};
+import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
+import org.apache.kafka.common.serialization.{Deserializer, Serde, Serdes, Serializer}
 import org.apache.kafka.common.utils.Bytes
+import org.apache.kafka.connect.json.{JsonDeserializer, JsonSerializer};
+import org.apache.kafka.streams.kstream.{Aggregator, Initializer, Materialized,
+  TimeWindows, ValueMapper, Windowed }
+import org.apache.kafka.streams.state.WindowStore
+import org.apache.kafka.streams.{Consumed, KafkaStreams, StreamsBuilder}
 import scala.collection.JavaConverters._
 
 import Constants._

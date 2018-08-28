@@ -1,19 +1,12 @@
 package com.globaleagle.netbot
 
-import collection.mutable.Map
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.{JsonNodeFactory, ObjectNode, ArrayNode, TextNode};
-import java.util.Properties
-import java.util.function.Consumer;
-import org.apache.kafka.clients.consumer.ConsumerConfig
-import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord, ProducerConfig}
-import org.apache.kafka.common.serialization._
-import org.apache.kafka.common.serialization._
-import org.apache.kafka.connect.json.JsonDeserializer;
-import org.apache.kafka.connect.json.JsonSerializer;
-import org.apache.kafka.streams._
-import org.apache.kafka.streams.kstream.ValueJoiner
-import org.apache.kafka.streams.kstream.{Printed, KStream, KTable, Produced, Serialized, ForeachAction}
+import com.fasterxml.jackson.databind.node.{ArrayNode, JsonNodeFactory, ObjectNode, TextNode};
+import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
+import org.apache.kafka.common.serialization.{Deserializer, Serde, Serdes, Serializer}
+import org.apache.kafka.connect.json.{JsonDeserializer, JsonSerializer};
+import org.apache.kafka.streams.kstream.{ForeachAction, KStream}
+import org.apache.kafka.streams.{Consumed, KafkaStreams, StreamsBuilder}
 import scala.collection.JavaConverters._
 
 import Constants._
