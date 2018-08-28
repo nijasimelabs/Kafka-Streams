@@ -33,7 +33,11 @@ abstract class App {
    */
   private val config = getAppConfigs() match {
     case Some(cfg) => cfg
-    case None => new Properties()
+    case None => {
+      logger.error("Could not load App configurations")
+      // TODO: should we quit ?
+      new Properties()
+    }
   }
 
   protected def getConfig(key: String): String = {
@@ -48,6 +52,7 @@ abstract class App {
   private def getConfigPath(): String = {
     val configPath = System.getProperty(CONFIG_PATH)
     if (configPath == null || configPath == "") {
+      logger.error("Config path is not set")
       throw new Exception("Config path is not set")
     }
 
@@ -72,8 +77,14 @@ abstract class App {
       result = Some(props)
     } catch {
       // TODO logging
-      case e: IOException =>
+      case e: IOException => {
+        logger.error("Error occured reading properties: {}", e.getMessage)
         throw e
+      }
+      case e: Exception => {
+        logger.error("Error occured reading properties: {}", e)
+        throw e
+      }
     } finally {
       if (input != null) {
         input.close()
@@ -87,7 +98,9 @@ abstract class App {
    * Return application level configurations for app @name
    */
   def getAppConfigs(): Option[Properties] = {
-    return getPropertiesFromFile(getConfigPath() + CONFIG_FILE)
+    val path = getConfigPath() + CONFIG_FILE
+    logger.debug("Loading application configuration from :{}", path)
+    return getPropertiesFromFile(path)
   }
 
 
@@ -95,20 +108,26 @@ abstract class App {
    * Return Stream application configurations for app @name
    */
   def getAppProperties(): Option[Properties] = {
-    return getPropertiesFromFile(getConfigPath() + getAppName() + "/" + APP_CONFIG_FILE)
+    val path = getConfigPath() + getAppName() + "/" + APP_CONFIG_FILE
+    logger.debug("Loading stream configuration from :{}", path)
+    return getPropertiesFromFile(path)
   }
 
   /*
    * Return producer configurations for app @name
    */
   def getProducerProperties(): Option[Properties] = {
-    return getPropertiesFromFile(getConfigPath() + getAppName() + "/" + PROD_CONFIG_FILE)
+    val path = getConfigPath() + getAppName() + "/" + PROD_CONFIG_FILE
+    logger.debug("Loading producer configuration from :{}", path)
+    return getPropertiesFromFile(path)
   }
 
   /*
    * Return consumer configurations for app @name
    */
   def getConsumerProperties(): Option[Properties] = {
-    return getPropertiesFromFile(getConfigPath() + getAppName() + "/" + CONS_CONFIG_FILE)
+    val path = getConfigPath() + getAppName() + "/" + CONS_CONFIG_FILE
+    logger.debug("Loading consumer configuration from :{}", path)
+    return getPropertiesFromFile(path)
   }
 }

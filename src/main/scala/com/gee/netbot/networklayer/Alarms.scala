@@ -27,6 +27,7 @@ object ChannelGroup extends App {
     val streamConfig = getAppProperties() match {
       case Some(props) => props;
       case None => {
+        logger.error("Could not read application properties")
         throw new Exception("Could not read application properties")
       }
     }
@@ -34,6 +35,7 @@ object ChannelGroup extends App {
     val prodConfig = getProducerProperties() match {
       case Some(props) => props;
       case None => {
+        logger.error("Could not read producer properties")
         throw new Exception("Could not read producer properties")
       }
     }
