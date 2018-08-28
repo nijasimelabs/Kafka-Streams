@@ -1,4 +1,4 @@
-package com.globaleagle.netbot
+package com.gee.netbot
 
 object Constants {
   val CONFIG_PATH = "config.path"

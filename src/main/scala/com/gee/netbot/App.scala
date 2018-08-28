@@ -1,4 +1,4 @@
-package com.globaleagle.netbot
+package com.gee.netbot
 
 import java.util.Properties
 import java.io.FileInputStream

@@ -1,4 +1,4 @@
-package com.globaleagle.netbot
+package com.gee.netbot.operations
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.{ArrayNode, JsonNodeFactory, ObjectNode, TextNode};
@@ -9,7 +9,8 @@ import org.apache.kafka.streams.kstream.{ForeachAction, KStream}
 import org.apache.kafka.streams.{Consumed, KafkaStreams, StreamsBuilder}
 import scala.collection.JavaConverters._
 
-import Constants._
+import com.gee.netbot.App
+import com.gee.netbot.Constants._
 
 object ChannelGroup extends App {
 
