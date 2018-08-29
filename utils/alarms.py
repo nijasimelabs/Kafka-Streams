@@ -9,7 +9,7 @@ from random import choice
 
 
 p = Producer({'bootstrap.servers': 'localhost:9092'})
-topic = "alarams"
+topic = "alarms"
 interval = 1
 
 
@@ -33,7 +33,7 @@ def datagen():
       "name": "Tap Unreachable Alarm",
       "source": "%s",
       "reason":"Heartbeat failed. TAP or Network is down",
-      "time":%s,
+      "time":"%s",
       "time-zone":"GMT+5:30",
       "severity":"%s",
       "suppress": false,
