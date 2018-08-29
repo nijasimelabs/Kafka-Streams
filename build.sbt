@@ -20,3 +20,5 @@ val kafka_streams_scala_version = "0.2.1"
 
 libraryDependencies ++= Seq("com.lightbend" %%
   "kafka-streams-scala" % kafka_streams_scala_version)
+
+libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.24"

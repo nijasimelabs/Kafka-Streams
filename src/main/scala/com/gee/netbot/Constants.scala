@@ -36,4 +36,12 @@ object Constants {
   val KEY_GROUP_NAME = "groupname"
   val KEY_GROUP_MEMBERS = "group_members"
   val KEY_CHANNEL_GROUP_PROFILE = "changroup_profile"
+
+  val DB_HOST = "db.host"
+  val DB_PORT = "db.port"
+  val DB_DBNAME = "db.dbname"
+  val DB_USER = "db.user"
+  val DB_PASSWORD = "db.password"
+  val DB_DRIVER = "com.mysql.jdbc.Driver"
+
 }
