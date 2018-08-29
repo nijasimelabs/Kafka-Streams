@@ -28,29 +28,9 @@ abstract class App {
 
   ConfigManager.setLogger(logger)
 
-  /*
-   * Application level configurations
-   */
-  private val config = getAppConfigs() match {
-    case Some(cfg) => cfg
-    case None => {
-      logger.error("Could not load App configurations")
-      // TODO: should we quit ?
-      new Properties()
-    }
-  }
-
   protected def getConfig(key: String): String = {
-    return this.config.getProperty(key, "")
+    return ConfigManager.getConfig(key)
   }
-
-  /*
-   * Return application level configurations for app @name
-   */
-  def getAppConfigs(): Option[Properties] = {
-    return ConfigManager.getProperties(CONFIG_FILE)
-  }
-
 
   /*
    * Return Stream application configurations for app @name

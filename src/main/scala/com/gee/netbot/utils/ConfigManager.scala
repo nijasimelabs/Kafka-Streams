@@ -14,6 +14,17 @@ object ConfigManager {
   private val configPath = getConfigPath()
 
   /*
+   * Application level configurations
+   */
+  private val config = getAppConfigs() match {
+    case Some(cfg) => cfg
+    case None => {
+      logger.error("Could not load App configurations")
+      new Properties()
+    }
+  }
+
+  /*
    * Update logger to that of App instance
    */
   def setLogger(lgr: Logger) = {
@@ -39,6 +50,17 @@ object ConfigManager {
 
     logger.info("Config Path set to: {}", configPath + "/")
     return configPath + "/"
+  }
+
+  def getConfig(key: String): String = {
+    return this.config.getProperty(key, "")
+  }
+
+  /*
+   * Return application level configurations
+   */
+  def getAppConfigs(): Option[Properties] = {
+    return getProperties(CONFIG_FILE)
   }
 
   def getProperties(name: String): Option[Properties] = {
