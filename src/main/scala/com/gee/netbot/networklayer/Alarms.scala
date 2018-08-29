@@ -11,7 +11,7 @@ import scala.collection.JavaConverters._
 import com.gee.netbot.App
 import com.gee.netbot.Constants._
 
-object ChannelGroup extends App {
+object Alarms extends App {
 
   def getAppName(): String = {
     return ALARMS_APP_ID
@@ -60,5 +60,8 @@ object ChannelGroup extends App {
         }
       }
     )
+
+    val streamApp : KafkaStreams = new KafkaStreams(builder.build(), streamConfig)
+    streamApp.start();
   }
 }

@@ -44,8 +44,8 @@ def datagen():
     while True:
         source = choice(SOURCES)
         t = datetime.now().isoformat()
-        yield (t, template % (SEQ, source, t, choice(SEVERITY)))
         global SEQ
+        yield (t, template % (SEQ, source, t, choice(SEVERITY), source))
         SEQ += 1
         sleep(interval)
 

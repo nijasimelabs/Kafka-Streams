@@ -34,7 +34,5 @@
 
   <root level="debug">
     <appender-ref ref="STDOUT" />
-    <appender-ref ref="CHANNELGROUP" />
-    <appender-ref ref="THROUGHPUT" />
   </root>
 </configuration>
