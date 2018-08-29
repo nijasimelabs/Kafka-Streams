@@ -44,6 +44,8 @@ object Alarms extends App {
 
     val builder: StreamsBuilder = new StreamsBuilder()
 
+    logger.debug("Listening on topic: {}", getConfig(TOPIC_ALARMS))
+
     val alarmsStream = builder.stream(
       getConfig(TOPIC_ALARMS),
       Consumed.`with`(stringSerde, jsonSerde)
@@ -56,7 +58,9 @@ object Alarms extends App {
           } else {
             getConfig(ALARMS_NONSEVERE)
           }
+          logger.debug("sending alarm to {} : severity: {}", outtopic, severity)
           val result = new ProducerRecord[String, String](outtopic, key, value.toString())
+          producer.send(result)
         }
       }
     )
